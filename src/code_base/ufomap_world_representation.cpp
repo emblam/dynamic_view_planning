@@ -20,7 +20,6 @@ UFOMapWorld::UFOMapWorld(ros::NodeHandle& nh, ros::NodeHandle& nh_priv)
     cloud_sub_ = nh.subscribe(cloud_in_, nh_priv.param("cloud_in_queue_size", 10),
 														&UFOMapWorld::cloudCallback, this);
 
-	// TODO: Enable services
 
 	get_map_server_ = nh.advertiseService("get_map", &UFOMapWorld::exportMap, this);
 	change_input_server_ = nh.advertiseService("change_camera", &UFOMapWorld::changeInput,this);
@@ -93,5 +92,20 @@ void UFOMapWorld::cloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	}
 }
 
+void UFOMapWorld::timerCallback(const ros::TimerEvent& event)
+{
+	std_msgs::Header header;
+	header.stamp = ros::Time::now();
+	header.frame_id = frame_id_;
+
+	if (0 < map_pub_.getNumSubscribers() || map_pub_.isLatched())
+	{
+		ufomap_msgs::Ufomap msg;
+		ufomap_msgs::mapToMsg(map_, msg, false);
+		msg.header = header;
+		map_pub_.publish(msg);
+	}
+
+}
 
 }

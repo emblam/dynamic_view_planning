@@ -11,7 +11,6 @@
 #include "dynamic_view_planning/ChangeCamera.h"
 
 
-
 namespace dynamic_ufomap
 {
 class UFOMapWorld
