@@ -1,0 +1,63 @@
+#pragma once
+#include <ros/ros.h>
+
+#include "ufomap/octree_dynamic.h"
+
+#include <sensor_msgs/PointCloud2.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+
+#include <ufomap_msgs/GetUfomap.h>
+#include "dynamic_view_planning/ChangeCamera.h"
+
+
+
+namespace dynamic_ufomap
+{
+class UFOMapWorld
+{
+public:
+
+    UFOMapWorld(ros::NodeHandle& nh, ros::NodeHandle& nh_priv);
+
+private:
+
+    void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg);
+
+    void timerCallback(const ros::TimerEvent& event);
+
+    bool exportMap(ufomap_msgs::GetUfomap::Request &req, ufomap_msgs::GetUfomap::Response &res);
+
+	bool changeInput(dynamic_view_planning::ChangeCamera::Request &req, dynamic_view_planning::ChangeCamera::Response &res);
+
+private: 
+
+    ros::NodeHandle& nh_;
+    ros::NodeHandle& nh_priv_;
+
+    ros::Subscriber cloud_sub_;
+
+    ros::Publisher map_pub_;
+
+    ros::Timer pub_timer_;
+
+    ros::ServiceServer get_map_server_;
+    ros::ServiceServer change_input_server_;
+
+    tf2_ros::Buffer tf_buffer_;
+    tf2_ros::TransformListener tf_listener_;
+
+    ros::Duration transform_timeout_;
+
+    std::string cloud_in_;
+    std::string frame_id_;
+
+    ufomap::OctreeDynamic map_;
+
+    float pub_rate_;
+
+    unsigned int cloud_in_queue_size_;
+    unsigned int map_queue_size_;
+
+};
+}

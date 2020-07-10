@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc,argv, "world_rep_node");
+    ros::init(argc,argv, "ig_calculator_node");
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv;
 
@@ -12,10 +12,9 @@ int main(int argc, char **argv)
 
     ig_active_reconstruction::world_representation::RosServerCI<boost::shared_ptr> ig_server(nh, ig_calculator);
 
-    ROS_INFO("World representation is setup.");
+    ROS_INFO("Information gain calculator is ready.");
 
-    ros::MultiThreadedSpinner spinner;
-    spinner.spin();
+    ros::spin();
 
     return 0;
 

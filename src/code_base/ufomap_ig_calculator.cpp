@@ -29,7 +29,7 @@ ResultInformation UFOMapIGCalculator::computeViewIg(IgRetrievalCommand& command,
     std::vector<std::string> metric_names = command.metric_names;
 
     ufomap_math::Vector3 min_corner = Vector3(-0.05, 0.05, 0);
-    ufomap_math::Vector3 max_corner = Vector3(0.45, 0.55, 0.5)
+    ufomap_math::Vector3 max_corner = Vector3(0.45, 0.55, 0.5);
 
     ufomap_geometry::AABB roi = ufomap_geometry::AABB(min_corner, max_corner);
 
@@ -46,7 +46,7 @@ ResultInformation UFOMapIGCalculator::computeViewIg(IgRetrievalCommand& command,
         {
             if (metric_names[i] == std::string("AverageEntropyIg"))
             {
-                if (UFOMapIGCalculator::averageEntropyIg(map, roi, output_ig[i].predicted_gain))
+                if (UFOMapIGCalculator::averageEntropyIg(map, roi, origin, output_ig[i].predicted_gain))
                 {
                     output_ig[i].predicted_gain = ResultInformation::SUCCEEDED;
                 }
@@ -155,15 +155,15 @@ bool UFOMapIGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::A
         it_end = map.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
-        ufomap::Ray ray;
+        std::vector<ufomap::Point3> ray;
         ufomap::Point3 end = it.getCenter();
 
-        computeRay(origin, end, ray);
+        map.computeRay(origin, end, ray);
         
         voxel_visibility = 1;
 
         for (auto point = ray.begin(); point != ray.end(); point++)
-        {   p = map.getNodeOccupancy(point);
+        {   p = map.getNodeOccupancy(*point);
             voxel_visibility = voxel_visibility*(1-p);
         }
         p = map.getNodeOccupancy(end);

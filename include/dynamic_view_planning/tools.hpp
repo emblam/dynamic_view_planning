@@ -2,6 +2,9 @@
 
 #include <Eigen/Geometry>
 #include "movements/geometry_pose.h"
+#include "ufomap/math/vector3.h"
+#include "ig_active_reconstruction/view.hpp"
+#include "geometry_msgs/TransformStamped.h"
 
 namespace tools
 {
@@ -15,19 +18,39 @@ namespace tools
         return out_vector3;
     }
 
-    ig_active_reconstruction::Views::View viewFromTFtopic(std::string tf_name)
+    ig_active_reconstruction::views::View viewFromTFtopic(std::string camera_name)
     {
-        ig_active_reconstruction::Views::View view;
+        ig_active_reconstruction::views::View view;
 
         //Smart matchningsfunktion här!
 
         return view;
     }
 
-    std::string viewToTFtopic(ig_active_reconstruction::Views::View view)
+    std::string viewToCameraName(ig_active_reconstruction::views::View view)
     {
-        //En till smart matchningsfunktion! 
+        std::string camera_name;
+
+        //En till smart matchningsfunktion!
+
+        return camera_name;
+    }
+
+    std::string convertToString(geometry_msgs::TransformStamped tf_in, std::string camera_name)
+    {
+        std::string string_out;
+
+        std::string tf_x = std::to_string(tf_in.transform.translation.x);
+        std::string tf_y = std::to_string(tf_in.transform.translation.y);
+        std::string tf_z = std::to_string(tf_in.transform.translation.z);
         
-        return tf_name;
+        std::string tf_qx = std::to_string(tf_in.transform.rotation.x);
+        std::string tf_qy = std::to_string(tf_in.transform.rotation.x);
+        std::string tf_qz = std::to_string(tf_in.transform.rotation.x);
+        std::string tf_qw = std::to_string(tf_in.transform.rotation.x);
+
+        string_out = tf_x + " " + tf_y + " " + tf_z + " " + tf_qx + " " + tf_qy + " " + tf_qz + " " + tf_qw + " " + camera_name + "\n";
+
+        return string_out;
     }
 }

@@ -1,28 +1,34 @@
 #include "dynamic_view_planning/virtual_robot.hpp"
 #include "dynamic_view_planning/tools.hpp"
+#include "dynamic_view_planning/ChangeCamera.h"
 
-namespace virtual_robot
+namespace robot
 {
     typedef typename ig_active_reconstruction::views::View View;
     typedef typename ig_active_reconstruction::robot::CommunicationInterface::ReceptionInfo ReceptionInfo;
     typedef typename ig_active_reconstruction::robot::MovementCost MovementCost;
 
-virtualRobot::virtualRobot(ros::NodeHandle& nh, ros::NodeHandle& nh_priv);
+virtualRobot::virtualRobot(ros::NodeHandle& nh, ros::NodeHandle& nh_priv)
 {
-    //What should construct do?
-    camera_client_ = nh_priv.serviceClient<dynamic_view_planning::ChangeCamera>("change_camera");
+    change_camera_ = nh_priv.serviceClient<dynamic_view_planning::ChangeCamera>("change_camera");
 }
 
 View virtualRobot::getCurrentView()
 {
-    View view = viewFromTFtopic();
-
-    return view;
+    return current_view_;
 }
 
 ReceptionInfo virtualRobot::retrieveData()
 {
-    //Should this function do something? Or should we record data continuously?
+    /* At the moment, we only feed the correct camera stream into ufomap_server, so  
+     * that the map can be updated continuously up until the ig is calculated. 
+     * Ig and evaluation is performed on that map from world_rep module. 
+     * Let's hope it works. 
+     * 
+     * If it doesn't, we might have to change this function. 
+     */
+
+    return ReceptionInfo::SUCCEEDED;
 }
 
 MovementCost virtualRobot::movementCost(View& target_view)
@@ -42,14 +48,30 @@ MovementCost virtualRobot::movementCost(View& start_view, View& target_view,
     return move_cost;
 }
 
-bool moveTo(View& target_view)
+bool virtualRobot::moveTo(View& target_view)
 {
-    std::string new_topic = viewToTFtopic(target_view);
+    bool success;
+
+    std::string target_camera = target_view.additionalFieldsNames()[0];
 
     dynamic_view_planning::ChangeCamera srv;
+    srv.request.new_camera = target_camera;
 
-    if 
-    
+    if (change_camera_.call(srv))
+    {
+        current_view_ = target_view;
+        current_camera_ = target_camera;
+
+        ROS_INFO("Changed to %ld", current_camera_);
+
+        return true;
+    }
+    else 
+    {
+        ROS_WARN("Couldn't move!");
+        return false;
+    }
+
+    return success;
 }
-
 }

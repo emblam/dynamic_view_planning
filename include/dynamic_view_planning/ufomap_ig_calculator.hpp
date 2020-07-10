@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <ufomap/octree.h>
+#include "ufomap/octree_base.h"
 
 #include "ufomap/geometry/frustum.h"
 #include "ufomap_msgs/GetUfomap.h"
@@ -13,10 +14,6 @@
 #include "movements/geometry_pose.h"
 
 #include "ig_active_reconstruction/world_representation_communication_interface.hpp"
-
-
-
-
 
 namespace ufomap_ig
 {
@@ -53,11 +50,11 @@ private:
 
     //IG-formulations:
 
-    bool averageEntropyIg(ufomap::Octree, ufomap_geometry::Frustum frustum, double ig_result);
+    bool averageEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin, double ig_result);
 
-    bool occlusionAwareIg(ufomap::Octree, double ig_result, ufomap::Point3 origin);
+    bool occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin, double ig_result);
 
-    bool unknownIg(ufomap::Octree, ufomap_geometry::Frustum frustum, double ig_result);
+    bool unknownIg(ufomap::Octree map, ufomap_geometry::AABB bb, double ig_result);
 
     bool rearSideVoxelIg(ufomap::Octree, double ig_result);
 
