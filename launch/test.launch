@@ -1,0 +1,5 @@
+<launch>
+
+    <node pkg="dynamic_view_planning" type="test_node" name="test_node" output="screen" />
+
+</launch>

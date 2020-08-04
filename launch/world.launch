@@ -1,0 +1,33 @@
+<launch>
+
+    <arg name="resolution" default="0.005" />
+	<arg name="depth_levels" default="8" />
+	<arg name="multithreaded" default="false" />
+    <arg name="map_queue_size" default="10" />
+    <arg name="map_latch" default="false" />
+    <arg name="cloud_in_queue_size" default="10" />
+    <arg name="frame_id" default="map" />
+    <arg name="discrete_insertion" default="true" />
+    <arg name="insert_depth" default="3"/>
+    <arg name="insert_n" default="0"/>
+    <arg name="max_range" default="2"/>
+
+
+    <node pkg="dynamic_view_planning" type="world_representation_node" name="world_representation_node" output="screen">
+        
+        <param name="multithreaded" value="$(arg multithreaded)" />	
+        <param name="resolution" value="$(arg resolution)" />
+		<param name="depth_levels" value="$(arg depth_levels)" />
+        <param name="map_queue_size" value="$(arg map_queue_size)" />
+        <param name="map_latch" value="$(arg map_latch)" />
+        <param name="cloud_in_queue_size" value="$(arg cloud_in_queue_size)" />
+        <param name="frame_id" value="$(arg frame_id)" />
+        <param name="discrete_insertion" value="$(arg discrete_insertion)" />
+        <param name="insert_depth" value="$(arg insert_depth)" />
+        <param name="insert_n" value="$(arg insert_n)" />
+        <param name="max_range" value="$(arg max_range)" />
+
+
+    </node>
+
+</launch>
