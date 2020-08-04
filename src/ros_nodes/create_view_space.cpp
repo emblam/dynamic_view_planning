@@ -19,7 +19,6 @@ int main(int argc, char **argv)
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
 
-    ROS_WARN_STREAM(file_in);
 
     bool front = false;
     bool left = false;
@@ -90,7 +89,7 @@ int main(int argc, char **argv)
 
     myfile.close();
 
-    ROS_WARN("A view space file has been created: %s", file_in.c_str());
+    ROS_INFO("A view space file has been created: %s", file_in.c_str());
     
     ros::MultiThreadedSpinner spinner;
     spinner.spin();

@@ -17,7 +17,7 @@ namespace tools
         ufomap_math::Vector3 out_vector3 = ufomap_math::Vector3(x,y,z);
         return out_vector3;
     }
-
+/* 
     ig_active_reconstruction::views::View viewFromTFtopic(std::string camera_name)
     {
         ig_active_reconstruction::views::View view;
@@ -25,13 +25,13 @@ namespace tools
         //Smart matchningsfunktion här!
 
         return view;
-    }
+    } */
 
     std::string viewToCameraName(ig_active_reconstruction::views::View view)
     {
         std::string camera_name;
 
-        //En till smart matchningsfunktion!
+        camera_name = view.additionalFieldsNames()[0];
 
         return camera_name;
     }
@@ -45,12 +45,13 @@ namespace tools
         std::string tf_z = std::to_string(tf_in.transform.translation.z);
         
         std::string tf_qx = std::to_string(tf_in.transform.rotation.x);
-        std::string tf_qy = std::to_string(tf_in.transform.rotation.x);
-        std::string tf_qz = std::to_string(tf_in.transform.rotation.x);
-        std::string tf_qw = std::to_string(tf_in.transform.rotation.x);
+        std::string tf_qy = std::to_string(tf_in.transform.rotation.y);
+        std::string tf_qz = std::to_string(tf_in.transform.rotation.z);
+        std::string tf_qw = std::to_string(tf_in.transform.rotation.w);
 
         string_out = tf_x + " " + tf_y + " " + tf_z + " " + tf_qx + " " + tf_qy + " " + tf_qz + " " + tf_qw + " " + camera_name + "\n";
 
         return string_out;
     }
+
 }

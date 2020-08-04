@@ -3,6 +3,8 @@ project(dynamic_view_planning)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_compile_options(-Wall -Wextra -Wpedantic)
+
 find_package(catkin REQUIRED COMPONENTS 
   geometry_msgs
   nodelet
@@ -21,11 +23,13 @@ find_package(catkin REQUIRED COMPONENTS
   ig_active_reconstruction_ros
   message_generation
   geometry_msgs
+  rosbag
 )
 
 add_service_files(
   FILES
   ChangeCamera.srv
+  AnalyseFile.srv
 )
 
 generate_messages(
@@ -60,9 +64,23 @@ add_executable(create_view_space_node
   src/ros_nodes/create_view_space.cpp
 )
 
-add_executable(ufomap_world_representation_node 
+add_executable(world_representation_node 
   src/ros_nodes/world_representation_node.cpp
   src/code_base/ufomap_world_representation.cpp
+)
+
+add_executable(evaluation_node 
+  src/ros_nodes/evaluation_node.cpp
+  src/code_base/evaluation_tools.cpp
+)
+
+add_executable(test_node
+  src/ros_nodes/test_node.cpp
+  src/code_base/test.cpp
+)
+
+add_executable(talker_node
+  src/ros_nodes/talker_node.cpp
 )
 
 target_link_libraries(ig_calculator_node
@@ -77,7 +95,19 @@ target_link_libraries(create_view_space_node
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(ufomap_world_representation_node
+target_link_libraries(world_representation_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(evaluation_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(test_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(talker_node
   ${catkin_LIBRARIES}
 )
 

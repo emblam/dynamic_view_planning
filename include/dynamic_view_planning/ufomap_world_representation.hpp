@@ -1,7 +1,8 @@
 #pragma once
 #include <ros/ros.h>
 
-#include "ufomap/octree_dynamic.h"
+//#include "ufomap/octree_dynamic.h"
+#include "ufomap/octree.h"
 
 #include <sensor_msgs/PointCloud2.h>
 #include <tf2_ros/transform_listener.h>
@@ -11,7 +12,8 @@
 #include "dynamic_view_planning/ChangeCamera.h"
 
 
-namespace dynamic_ufomap
+
+namespace dynamic_ufomapping
 {
 class UFOMapWorld
 {
@@ -46,14 +48,21 @@ private:
     tf2_ros::Buffer tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
 
-    ros::Duration transform_timeout_;
+    ros::Duration transform_timeout_ = ros::Duration(30);
 
     std::string cloud_in_;
     std::string frame_id_;
 
-    ufomap::OctreeDynamic map_;
+    //ufomap::OctreeDynamic map_;
+    ufomap::Octree map_;
+
+    float max_range_;
 
     float pub_rate_;
+
+    bool insert_discrete_;
+	unsigned int insert_depth_;
+	unsigned int insert_n_;
 
     unsigned int cloud_in_queue_size_;
     unsigned int map_queue_size_;
