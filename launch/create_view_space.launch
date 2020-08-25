@@ -1,7 +1,7 @@
 <launch>
     
     <!--- ADD FILENAME HERE -->
-    <param name="file_in" value="/home/rpl/dvp_ws/src/dynamic_view_planning/config/test.txt"/>
+    <param name="file_in" value="/home/rpl/dvp_ws/src/dynamic_view_planning/config/fish_1.txt"/>
 
     <node pkg="dynamic_view_planning" type="create_view_space_node" name="view_space_node" output="screen"/>
 

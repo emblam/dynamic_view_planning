@@ -64,6 +64,10 @@ add_executable(create_view_space_node
   src/ros_nodes/create_view_space.cpp
 )
 
+add_executable(generate_reference_map_node 
+  src/ros_nodes/generate_reference_map.cpp
+)
+
 add_executable(world_representation_node 
   src/ros_nodes/world_representation_node.cpp
   src/code_base/ufomap_world_representation.cpp
@@ -76,11 +80,10 @@ add_executable(evaluation_node
 
 add_executable(test_node
   src/ros_nodes/test_node.cpp
-  src/code_base/test.cpp
 )
 
-add_executable(talker_node
-  src/ros_nodes/talker_node.cpp
+add_executable(split_bag_node
+  src/ros_nodes/split_bag_node.cpp
 )
 
 target_link_libraries(ig_calculator_node
@@ -92,6 +95,10 @@ target_link_libraries(robot_node
 )
 
 target_link_libraries(create_view_space_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(generate_reference_map_node
   ${catkin_LIBRARIES}
 )
 
@@ -107,7 +114,7 @@ target_link_libraries(test_node
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(talker_node
+target_link_libraries(split_bag_node
   ${catkin_LIBRARIES}
 )
 

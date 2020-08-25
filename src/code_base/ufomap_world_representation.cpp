@@ -7,6 +7,8 @@
 
 #include <future>
 
+
+
 namespace dynamic_ufomapping
 {
 UFOMapWorld::UFOMapWorld(ros::NodeHandle& nh, ros::NodeHandle& nh_priv)
@@ -29,7 +31,6 @@ UFOMapWorld::UFOMapWorld(ros::NodeHandle& nh, ros::NodeHandle& nh_priv)
     cloud_in_ = std::string("/camera_front/depth/color/points");
 
 	cloud_sub_ = nh_.subscribe(cloud_in_, cloud_in_queue_size_, &UFOMapWorld::cloudCallback,this);
-    
 
 	if (0 < pub_rate_)
 	{
@@ -90,14 +91,15 @@ void UFOMapWorld::cloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 		// transform_timeout_);
 		// ufomap::toUfomap(msg, cloud);
 
-		auto a1 = std::async(std::launch::async, [this, &msg] {
+ 		auto a1 = std::async(std::launch::async, [this, &msg] {
 			return tf_buffer_.lookupTransform(frame_id_, msg->header.frame_id, msg->header.stamp, transform_timeout_);
 		});
 		auto a2 =
 				std::async(std::launch::async, [&msg, &cloud] { ufomap::toUfomap(msg, cloud); });
 
 		ufomap_math::Pose6 transform = ufomap::toUfomap(a1.get().transform);
-		a2.wait();
+		a2.wait(); 
+
 		cloud.transform(transform);
 		if (insert_discrete_)
 		{

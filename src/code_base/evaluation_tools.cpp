@@ -10,33 +10,32 @@
 #include <ufomap_msgs/conversions.h>
 #include <ufomap_ros/conversions.h>
 
+#include <std_msgs/String.h>
+
 #include <future>
 namespace evaluation_tools
 {
-
 
 EvaluationPortal::EvaluationPortal(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     : nh_(nh)
     , nh_priv_(nh_priv)
     , tf_listener_(tf_buffer_)
-    , reference_map_(nh_priv.param("resolution", 0.005), nh_priv.param("depth_levels", 8),
-				 !nh_priv.param("multithreaded", false))
     , experiment_name_(nh_priv.param("experiment_name", std::string("test")))
-    , create_reference_(nh_priv.param("create_reference", true))
+    , insert_depth_(nh_priv.param("insert_depth", 3))
+	, insert_n_(nh_priv.param("insert_n", 0))
+	, max_range_(nh_priv.param("max_range", 2))
 {
-    data_bag_ = experiment_name_ + ".bag";
-    reference_bag_ = experiment_name_ + "_reference.bag";
+    // Reference bag
+    reference_bag_ = "/home/rpl/bagfiles/" + experiment_name_ + "_reference.bag";
+    
+    analyse_file_server_ = nh_.advertiseService("analyse_file", &EvaluationPortal::analyseFile, this);
         
-    if(create_reference_)
-    {
-        generateReferenceMap();
-    }
 }
 
 bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &req, dynamic_view_planning::AnalyseFile::Response &)
 {
-    std::string input_file = req.input_file;
-    std::string output_file = req.output_file;
+    std::string input_file = "/home/rpl/bagfiles/" + req.input_file + ".bag";
+    std::string output_file = "/home/rpl/results/" + req.output_file + ".txt"; 
 
     std::ofstream result_file(output_file.c_str());
 
@@ -49,21 +48,41 @@ bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &
     std::vector<std::string> topics;
     topics.push_back(std::string("/reconstructed_map"));
 
+    ros::Duration half_duration(0.5);
+
     for(rosbag::MessageInstance const m: rosbag::View(recon_bag, rosbag::TopicQuery(topics)))
     {
         ufomap_msgs::Ufomap::ConstPtr recon_msg = m.instantiate<ufomap_msgs::Ufomap>();
-        
-        //TODO: Extract ref_msg from ref_bag; 
-        //HOW TO DO: Extract ref_msg at timestamp? 
-        ufomap_msgs::Ufomap ref_msg; 
-        ufomap::Octree ref_map;
-        ufomap_msgs::msgToMap(ref_msg, ref_map);
-
 
         ufomap::Octree recon_map;
         ufomap_msgs::msgToMap(*recon_msg,recon_map);
 
-        
+        ros::Time msg_time = recon_msg->header.stamp;
+
+        ros::Time start_time = msg_time - half_duration; 
+        ros::Time end_time = msg_time + half_duration;
+
+        ros::Duration threshold = ros::Duration(1);
+
+        ufomap_msgs::Ufomap::ConstPtr ref_msg;
+
+        for(rosbag::MessageInstance const ref_m: rosbag::View(ref_bag, start_time, end_time, true))
+        {
+            ufomap_msgs::Ufomap::ConstPtr temp_msg = ref_m.instantiate<ufomap_msgs::Ufomap>();
+
+            ros::Time temp_time = temp_msg->header.stamp;
+            ros::Duration temp_threshold = temp_time - msg_time;
+            
+            if(temp_threshold < threshold)
+            {
+                threshold = temp_threshold;
+                ref_msg = temp_msg;
+            }
+        }
+
+        ufomap::Octree ref_map;
+        ufomap_msgs::msgToMap(*ref_msg, ref_map);
+
         std::string results = EvaluationPortal::compareMaps(recon_map, ref_map);
         
         result_file << results;
@@ -132,61 +151,4 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
     
     return result;
 } 
-
-void EvaluationPortal::generateReferenceMap()
-{   
-    rosbag::Bag data_bag;
-    data_bag.open(data_bag_, rosbag::bagmode::Read);
-
-    rosbag::Bag reference_bag;
-    reference_bag.open(reference_bag_, rosbag::bagmode::Write);
-
-    std::vector<std::string> topics;
-    topics.push_back(std::string("/camera_front/depth/color/points"));
-    topics.push_back(std::string("/camera_left/depth/color/points"));
-    topics.push_back(std::string("/camera_right/depth/color/points"));
-
-    for(rosbag::MessageInstance const m: rosbag::View(data_bag, rosbag::TopicQuery(topics)))
-    {
-        sensor_msgs::PointCloud2::ConstPtr in_msg = m.instantiate<sensor_msgs::PointCloud2>();
-
-        try
-	    {
-
-		    ufomap::PointCloud cloud;
-
-    		auto a1 = std::async(std::launch::async, [this, &in_msg] {
-	    		return tf_buffer_.lookupTransform("map", in_msg->header.frame_id, 
-                                                    in_msg->header.stamp, transform_timeout_);
-		    });
-		    auto a2 =
-			    	std::async(std::launch::async, [&in_msg, &cloud] { ufomap::toUfomap(in_msg, cloud); });
-
-		    ufomap_math::Pose6 transform = ufomap::toUfomap(a1.get().transform);
-		    a2.wait();
-		    cloud.transform(transform);
-		    reference_map_.insertPointCloudDiscrete(transform.translation(), cloud, 1, 0, 3);
-
-	    }
-	    catch (tf2::TransformException& ex)
-	    {
-		    ROS_WARN_THROTTLE(1, "%s", ex.what());
-            continue;
-	    }
-
-
-        std_msgs::Header header;
-	    header.stamp = in_msg->header.stamp;
-	    header.frame_id = "map";
-
-    	ufomap_msgs::Ufomap out_msg;
-	    ufomap_msgs::mapToMsg(reference_map_, out_msg);
-		out_msg.header = header;
-
-        reference_bag.write("reference_map", in_msg->header.stamp, out_msg);
-
-    }
-    data_bag.close();
-    reference_bag.close();
-}
 }

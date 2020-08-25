@@ -28,9 +28,9 @@ int main(int argc, char **argv)
         
         try
         {
-            if(tfBuffer.canTransform("map", "camera_front_link", ros::Time(0), ros::Duration(60)))
+            if(tfBuffer.canTransform("map", "camera_front_depth_optical_frame", ros::Time(0), ros::Duration(60)))
             {
-                tf_front = tfBuffer.lookupTransform("map", "camera_front_link", ros::Time(0));
+                tf_front = tfBuffer.lookupTransform("map", "camera_front_depth_optical_frame", ros::Time(0));
                 front = true;
             }
             
@@ -46,9 +46,9 @@ int main(int argc, char **argv)
     {
         try
         {
-            if(tfBuffer.canTransform("map", "camera_left_link", ros::Time(0), ros::Duration(60)))
+            if(tfBuffer.canTransform("map", "camera_left_depth_optical_frame", ros::Time(0), ros::Duration(60)))
             {
-                tf_left = tfBuffer.lookupTransform("map", "camera_left_link",ros::Time(0));
+                tf_left = tfBuffer.lookupTransform("map", "camera_left_depth_optical_frame",ros::Time(0));
                 left = true;
             }
             
@@ -64,9 +64,9 @@ int main(int argc, char **argv)
     {
         try
         {
-            if(tfBuffer.canTransform("map", "camera_right_link", ros::Time(0), ros::Duration(60)))
+            if(tfBuffer.canTransform("map", "camera_right_depth_optical_frame", ros::Time(0), ros::Duration(60)))
             {
-                tf_right = tfBuffer.lookupTransform("map", "camera_right_link",ros::Time(0));
+                tf_right = tfBuffer.lookupTransform("map", "camera_right_depth_optical_frame",ros::Time(0));
                 right = true;
             }
         }

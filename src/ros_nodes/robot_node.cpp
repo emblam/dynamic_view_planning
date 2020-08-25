@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc,argv, "virtual_robot_node");
     ros::NodeHandle nh;
-    ros::NodeHandle nh_priv;
+    ros::NodeHandle nh_priv("~");
 
     boost::shared_ptr<ig_active_reconstruction::robot::CommunicationInterface> virtual_robot{new robot::virtualRobot{nh,nh_priv}};
 

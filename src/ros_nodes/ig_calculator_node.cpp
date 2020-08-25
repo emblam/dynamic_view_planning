@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc,argv, "ig_calculator_node");
     ros::NodeHandle nh;
-    ros::NodeHandle nh_priv;
+    ros::NodeHandle nh_priv("~");
 
     boost::shared_ptr<ig_active_reconstruction::world_representation::CommunicationInterface> ig_calculator{new ufomap_ig::UFOMapIGCalculator{nh,nh_priv}};
 

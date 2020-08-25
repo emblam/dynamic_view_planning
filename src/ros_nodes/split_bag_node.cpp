@@ -61,21 +61,21 @@ int main(int argc, char** argv)
     {
         sensor_msgs::PointCloud2::ConstPtr in_msg = m.instantiate<sensor_msgs::PointCloud2>();
 
-	      ufomap::PointCloud cloud;
+	    ufomap::PointCloud cloud;
         geometry_msgs::TransformStamped camera_position = view_space.getViewTransform(in_msg->header.frame_id);
         ufomap_math::Pose6 transform = ufomap::toUfomap(camera_position.transform);
         ufomap::toUfomap(in_msg, cloud);
 
-	      cloud.transform(transform);
-	      reconstructed_map.insertPointCloudDiscrete(transform.translation(), cloud, max_range, insert_n, insert_depth);
+	    cloud.transform(transform);
+	    reconstructed_map.insertPointCloudDiscrete(transform.translation(), cloud, max_range, insert_n, insert_depth);
 
         std_msgs::Header header;
-	      header.stamp = in_msg->header.stamp;
-	      header.frame_id = "map";
+	    header.stamp = in_msg->header.stamp;
+	    header.frame_id = "map";
 
       	ufomap_msgs::Ufomap out_msg;
-	      ufomap_msgs::mapToMsg(reconstructed_map, out_msg);
-		    out_msg.header = header;
+	    ufomap_msgs::mapToMsg(reconstructed_map, out_msg);
+		out_msg.header = header;
 
         rec_bag.write("reconstructed_map", in_msg->header.stamp, out_msg);
     }

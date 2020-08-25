@@ -5,7 +5,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "world_representation_node");
     ros::NodeHandle nh;
-    ros::NodeHandle nh_priv;
+    ros::NodeHandle nh_priv("~");
 
     dynamic_ufomapping::UFOMapWorld world(nh,nh_priv);
 

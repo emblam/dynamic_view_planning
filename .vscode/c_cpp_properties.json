@@ -1,0 +1,41 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/rpl/dvp_ws/devel/include/**",
+                "/home/rpl/catkin_ws/devel/include/**",
+                "/opt/ros/kinetic/include/**",
+                "/home/rpl/dvp_ws/src/aruco_ros/aruco/include/**",
+                "/home/rpl/dvp_ws/src/aruco_ros/aruco_ros/include/**",
+                "/home/rpl/dvp_ws/src/charuco_detect/include/**",
+                "/home/rpl/dvp_ws/src/dynamic_view_planning/include/**",
+                "/home/rpl/dvp_ws/src/experiment_setup/include/**",
+                "/home/rpl/dvp_ws/src/rpg_ig_active_reconstruction/example/flying_gazebo_stereo_cam/include/**",
+                "/home/rpl/dvp_ws/src/rpg_ig_active_reconstruction/ig_active_reconstruction/include/**",
+                "/home/rpl/dvp_ws/src/rpg_ig_active_reconstruction/ig_active_reconstruction_octomap/include/**",
+                "/home/rpl/dvp_ws/src/rpg_ig_active_reconstruction/ig_active_reconstruction_ros/include/**",
+                "/home/rpl/dvp_ws/src/rpg_ig_active_reconstruction/movements/include/**",
+                "/home/rpl/catkin_ws/src/STL-AEP/pigain/include/**",
+                "/home/rpl/dvp_ws/src/realsense-ros/realsense2_camera/include/**",
+                "/home/rpl/catkin_ws/src/STL-AEP/stl_aeplanner/include/**",
+                "/home/rpl/catkin_ws/src/STL-AEP/stl_frontier_planner/include/**",
+                "/home/rpl/dvp_ws/src/UFOMap/ufomap/include/**",
+                "/home/rpl/dvp_ws/src/UFOMap/ufomap_mapping/include/**",
+                "/home/rpl/dvp_ws/src/UFOMap/ufomap_msgs/include/**",
+                "/home/rpl/dvp_ws/src/UFOMap/ufomap_ros/include/**",
+                "/home/rpl/dvp_ws/src/UFOMap/ufomap_rviz_plugin/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14"
+        }
+    ],
+    "version": 4
+}

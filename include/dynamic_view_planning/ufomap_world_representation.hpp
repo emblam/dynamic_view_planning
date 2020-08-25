@@ -11,6 +11,7 @@
 #include <ufomap_msgs/GetUfomap.h>
 #include "dynamic_view_planning/ChangeCamera.h"
 
+#include "dynamic_view_planning/view_space.hpp"
 
 
 namespace dynamic_ufomapping

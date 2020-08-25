@@ -1,0 +1,4 @@
+3 
+camera_front camera_front_depth_optical_frame 0.224978 -0.168973 0.458341 0.928225 0.017256 0.010901 -0.371458
+camera_left camera_left_depth_optical_frame 0.608714 0.334438 0.440150 -0.653287 -0.657424 0.258809 0.272079
+camera_right camera_right_depth_optical_frame -0.173168 0.307513 0.455961 0.667535 -0.653864 0.258562 -0.244958

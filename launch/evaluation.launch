@@ -1,0 +1,32 @@
+<launch>
+
+    <!-- Experiment parameters -->
+
+        <!-- Obs! Must give file path, without .bag suffix -->
+        <arg name="experiment_name"     default="fish_1"/>
+
+        <arg name="create_reference"    default="true"/>
+    <!-- Map parameters -->
+
+    <arg name="resolution"      default="0.005"/>
+	<arg name="depth_levels"    default="8"/>
+	<arg name="multithreaded"   default="false"/>
+    <arg name="insert_depth"    default="3"/>
+    <arg name="insert_n"        default="0"/>
+    <arg name="max_range"       default="2"/>
+    
+    <node pkg="dynamic_view_planning" type="evaluation_node" name="evaluation_node" output="screen">
+        
+        <param name="experiment_name"   value="$(arg experiment_name)"/>
+        <param name="create_reference"  value="$(arg create_reference)"/>
+
+        <param name="multithreaded"     value="$(arg multithreaded)"/>	
+        <param name="resolution"        value="$(arg resolution)"/>
+		<param name="depth_levels"      value="$(arg depth_levels)"/>
+        <param name="insert_depth"      value="$(arg insert_depth)"/>
+        <param name="insert_n"          value="$(arg insert_n)"/>
+        <param name="max_range"         value="$(arg max_range)"/>
+
+
+    </node>
+</launch>
