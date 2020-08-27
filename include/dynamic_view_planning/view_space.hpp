@@ -5,7 +5,12 @@
 
 #include <ros/ros.h>
 
+#pragma GCC diagnostic push
+
+#pragma GCC diagnostic ignored "-w"
 #include "ufomap/types.h"
+#pragma GCC diagnostic pop
+
 #include "geometry_msgs/TransformStamped.h"
 
 

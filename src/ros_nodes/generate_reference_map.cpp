@@ -8,10 +8,8 @@
 #include <ufomap_msgs/Ufomap.h>
 #include <ufomap_msgs/conversions.h>
 #include <ufomap_ros/conversions.h>
-#include <std_msgs/String.h>
 
 #include "dynamic_view_planning/view_space.hpp"
-#include <tf2_ros/transform_broadcaster.h>
 #include <future>
 
 int main(int argc, char **argv)

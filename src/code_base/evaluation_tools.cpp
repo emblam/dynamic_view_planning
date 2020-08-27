@@ -19,7 +19,6 @@ namespace evaluation_tools
 EvaluationPortal::EvaluationPortal(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     : nh_(nh)
     , nh_priv_(nh_priv)
-    , tf_listener_(tf_buffer_)
     , experiment_name_(nh_priv.param("experiment_name", std::string("test")))
     , insert_depth_(nh_priv.param("insert_depth", 3))
 	, insert_n_(nh_priv.param("insert_n", 0))
@@ -35,7 +34,7 @@ EvaluationPortal::EvaluationPortal(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &req, dynamic_view_planning::AnalyseFile::Response &)
 {
     std::string input_file = "/home/rpl/bagfiles/" + req.input_file + ".bag";
-    std::string output_file = "/home/rpl/results/" + req.output_file + ".txt"; 
+    std::string output_file = "/home/rpl/results/" + req.output_file + ".csv"; 
 
     std::ofstream result_file(output_file.c_str());
 
@@ -46,9 +45,17 @@ bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &
     ref_bag.open(reference_bag_);
 
     std::vector<std::string> topics;
-    topics.push_back(std::string("/reconstructed_map"));
+    topics.push_back(std::string("reconstructed_map"));
+
+    std::vector<std::string> ref_topics;
+    ref_topics.push_back(std::string("reference_map"));
 
     ros::Duration half_duration(0.5);
+
+    //DEBUG
+    // rosbag::Bag debug_bag;
+    // debug_bag.open("/home/rpl/bagfiles/debug_reference.bag", rosbag::bagmode::Write);
+    //END OF DEBUG
 
     for(rosbag::MessageInstance const m: rosbag::View(recon_bag, rosbag::TopicQuery(topics)))
     {
@@ -66,7 +73,7 @@ bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &
 
         ufomap_msgs::Ufomap::ConstPtr ref_msg;
 
-        for(rosbag::MessageInstance const ref_m: rosbag::View(ref_bag, start_time, end_time, true))
+        for(rosbag::MessageInstance const ref_m: rosbag::View(ref_bag, rosbag::TopicQuery(ref_topics), start_time, end_time, true))
         {
             ufomap_msgs::Ufomap::ConstPtr temp_msg = ref_m.instantiate<ufomap_msgs::Ufomap>();
 
@@ -80,15 +87,22 @@ bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &
             }
         }
 
+        //DEBUG -- Save ref map to see if correct
+
+        //debug_bag.write("rec_ref_map", ref_msg->header.stamp, *ref_msg);
+
+        //END OF DEBUG
+
         ufomap::Octree ref_map;
         ufomap_msgs::msgToMap(*ref_msg, ref_map);
 
         std::string results = EvaluationPortal::compareMaps(recon_map, ref_map);
-        
         result_file << results;
     }
 
     result_file.close();
+    recon_bag.close();
+    ref_bag.close();
 
     return true;
 }
@@ -100,19 +114,19 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
 
     ufomap_geometry::AABB roi = ufomap_geometry::AABB(min_corner, max_corner);
 
-    double true_positives;
-    double false_positives;
-    double ref_occupied;
-    double recon_occupied;
-    double no_voxels;
-    double no_unknown;
+    double true_positives = 0;
+    double false_positives = 0;
+    double ref_occupied = 0;
+    double recon_occupied = 0;
+    double no_voxels = 0;
+    double no_unknown = 0;
 
     for (auto it = reference.begin_leafs_bounding(roi, true, false, false, false, 0), 
         it_end = reference.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
         ++ref_occupied;
-        if(reconstruction.isOccupied(*it))
+        if(reconstruction.isOccupied(it.getCenter()))
         {
             ++true_positives;
         }
@@ -123,7 +137,7 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
         it != it_end && ros::ok(); ++it)
     {
         ++recon_occupied;
-        if(!reference.isOccupied(*it))
+        if (!(reference.isOccupied(it.getCenter())))
         {
             ++false_positives;
         }
@@ -143,6 +157,13 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
         ++no_unknown;
     }
 
+    /* std::cout << "tp: " << true_positives << std::endl;
+    std::cout << "ref occ: " << ref_occupied << std::endl;
+    std::cout << "fp: " << false_positives << std::endl;
+    std::cout << "rec occ: " << recon_occupied << std::endl;
+    std::cout << "unknown: " << no_unknown << std::endl;
+    std::cout << "voxels: " << no_voxels << std::endl; */
+    
     double true_positive_rate = true_positives/ref_occupied;
     double false_positive_rate = false_positives/recon_occupied;
     double unknown_rate = no_unknown/no_voxels;

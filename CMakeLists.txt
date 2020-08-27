@@ -3,8 +3,6 @@ project(dynamic_view_planning)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-Wall -Wextra -Wpedantic)
-
 find_package(catkin REQUIRED COMPONENTS 
   geometry_msgs
   nodelet
@@ -30,6 +28,7 @@ add_service_files(
   FILES
   ChangeCamera.srv
   AnalyseFile.srv
+  RequestIG.srv
 )
 
 generate_messages(
@@ -50,14 +49,9 @@ include_directories(
  ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(ig_calculator_node 
-  src/ros_nodes/ig_calculator_node.cpp
-  src/code_base/ufomap_ig_calculator.cpp
-)
-
-add_executable(robot_node 
-  src/ros_nodes/robot_node.cpp
-  src/code_base/virtual_robot.cpp
+add_executable(view_planning_node
+  src/ros_nodes/dynamic_view_planning.cpp
+  src/code_base/view_planner.cpp
 )
 
 add_executable(create_view_space_node 
@@ -86,11 +80,7 @@ add_executable(split_bag_node
   src/ros_nodes/split_bag_node.cpp
 )
 
-target_link_libraries(ig_calculator_node
-  ${catkin_LIBRARIES}
-)
-
-target_link_libraries(robot_node
+target_link_libraries(view_planning_node
   ${catkin_LIBRARIES}
 )
 
