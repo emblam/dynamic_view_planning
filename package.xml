@@ -26,13 +26,7 @@
   <depend>ufomap</depend>
   <depend>ufomap_msgs</depend>
   <depend>ufomap_ros</depend>
-  <depend>movements</depend>
-  <depend>ig_active_reconstruction</depend>
-  <depend>ig_active_reconstruction_ros</depend>
-
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
-
+  <depend>dynamic_view_planning_msgs</depend>
   
 
 

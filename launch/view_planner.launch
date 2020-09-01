@@ -5,6 +5,7 @@
         <!-- Obs! Must give file path, without .bag suffix -->
         <arg name="experiment_name"     default="fish_1"/>
         <arg name="ig_formulation"      default="random"/>
+        <arg name="time_step"           default="1"/>
 
     <!-- Map parameters -->
 
@@ -15,10 +16,11 @@
     <arg name="insert_n"        default="0"/>
     <arg name="max_range"       default="2"/>
     
-    <node pkg="dynamic_view_planning" type="evaluation_node" name="evaluation_node" output="screen">
+    <node pkg="dynamic_view_planning" type="view_planning_node" name="view_planning_node" output="screen">
         
         <param name="experiment_name"   value="$(arg experiment_name)"/>
         <param name="ig_formulation"    value="$(arg ig_formulation)" />
+        <param name="time_step"         value="$(arg time_step)"/>
         <param name="multithreaded"     value="$(arg multithreaded)"/>	
         <param name="resolution"        value="$(arg resolution)"/>
 		<param name="depth_levels"      value="$(arg depth_levels)"/>

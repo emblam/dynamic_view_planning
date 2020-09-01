@@ -14,6 +14,8 @@
 
 #include "dynamic_view_planning/view_space.hpp"
 
+#include "dynamic_view_planning_msgs/RequestIG.h"
+
 namespace dynamic_view_planning
 {
 class ViewPlanner

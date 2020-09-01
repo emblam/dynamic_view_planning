@@ -64,7 +64,7 @@ bool UFOMapWorld::exportMap(ufomap_msgs::GetUfomap::Request &req, ufomap_msgs::G
 	
 }
 
-bool UFOMapWorld::changeInput(dynamic_view_planning::ChangeCamera::Request &req, dynamic_view_planning::ChangeCamera::Response &res)
+bool UFOMapWorld::changeInput(dynamic_view_planning_msgs::ChangeCamera::Request &req, dynamic_view_planning_msgs::ChangeCamera::Response &res)
 { 
 	std::string camera_name = req.new_camera;
 	cloud_in_ = "/" + camera_name + "/depth/color/points";

@@ -7,7 +7,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 
-#include "dynamic_view_planning/AnalyseFile.h"
+#include "dynamic_view_planning_msgs/AnalyseFile.h"
 
 namespace evaluation_tools
 {
@@ -19,7 +19,7 @@ public:
 
 private: 
 
-    bool analyseFile(dynamic_view_planning::AnalyseFile::Request &req, dynamic_view_planning::AnalyseFile::Response &res);    
+    bool analyseFile(dynamic_view_planning_msgs::AnalyseFile::Request &req, dynamic_view_planning_msgs::AnalyseFile::Response &res);    
 
     std::string compareMaps(ufomap::Octree reconstruction, ufomap::Octree reference);
 public: 

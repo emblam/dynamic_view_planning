@@ -6,9 +6,9 @@ int main(int argc, char**argv)
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~"); 
 
-    dynamic_view_planning::ViewPlanner planner(nh,nh_priv);
-
     ROS_INFO("View planner is running.");
+
+    dynamic_view_planning::ViewPlanner planner(nh,nh_priv);
 
     ros::spin();
     return 0;

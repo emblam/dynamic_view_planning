@@ -5,11 +5,7 @@
 
 #include <ros/ros.h>
 
-#pragma GCC diagnostic push
-
-#pragma GCC diagnostic ignored "-w"
 #include "ufomap/types.h"
-#pragma GCC diagnostic pop
 
 #include "geometry_msgs/TransformStamped.h"
 
@@ -92,8 +88,6 @@ public:
 
         in>>nr_of_views;
 
-        ROS_WARN("Number of views: %d", nr_of_views);
-
         for(unsigned int i=0; i<nr_of_views; ++i)
         {
             View new_view;
@@ -102,6 +96,8 @@ public:
             
             view_space_.push_back(new_view);
         }
+
+        ROS_INFO("Viewspace created.");
     }
 
     const View& getView(int i) const

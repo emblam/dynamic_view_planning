@@ -16,25 +16,9 @@ find_package(catkin REQUIRED COMPONENTS
   ufomap
   ufomap_msgs
   ufomap_ros
-  movements
-  ig_active_reconstruction
-  ig_active_reconstruction_ros
-  message_generation
   geometry_msgs
   rosbag
-)
-
-add_service_files(
-  FILES
-  ChangeCamera.srv
-  AnalyseFile.srv
-  RequestIG.srv
-)
-
-generate_messages(
-  DEPENDENCIES
-  geometry_msgs
-  std_msgs
+  dynamic_view_planning_msgs
 )
 
 catkin_package(
@@ -50,7 +34,7 @@ include_directories(
 )
 
 add_executable(view_planning_node
-  src/ros_nodes/dynamic_view_planning.cpp
+  src/ros_nodes/dynamic_view_planning_node.cpp
   src/code_base/view_planner.cpp
 )
 
@@ -80,6 +64,11 @@ add_executable(split_bag_node
   src/ros_nodes/split_bag_node.cpp
 )
 
+add_executable(ig_server_node
+  src/ros_nodes/ig_server_node.cpp
+  src/code_base/ig_server.cpp
+)
+
 target_link_libraries(view_planning_node
   ${catkin_LIBRARIES}
 )
@@ -105,6 +94,10 @@ target_link_libraries(test_node
 )
 
 target_link_libraries(split_bag_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(ig_server_node
   ${catkin_LIBRARIES}
 )
 

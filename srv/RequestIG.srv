@@ -1,5 +1,0 @@
-# Request IG-calculation
-geometry_msgs::TransformStamped position
-string ig_id
---- 
-float64 ig

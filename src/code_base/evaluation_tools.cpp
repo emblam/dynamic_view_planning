@@ -31,7 +31,7 @@ EvaluationPortal::EvaluationPortal(ros::NodeHandle nh, ros::NodeHandle nh_priv)
         
 }
 
-bool EvaluationPortal::analyseFile(dynamic_view_planning::AnalyseFile::Request &req, dynamic_view_planning::AnalyseFile::Response &)
+bool EvaluationPortal::analyseFile(dynamic_view_planning_msgs::AnalyseFile::Request &req, dynamic_view_planning_msgs::AnalyseFile::Response &)
 {
     std::string input_file = "/home/rpl/bagfiles/" + req.input_file + ".bag";
     std::string output_file = "/home/rpl/results/" + req.output_file + ".csv"; 

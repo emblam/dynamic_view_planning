@@ -9,7 +9,7 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 
 #include <ufomap_msgs/GetUfomap.h>
-#include "dynamic_view_planning/ChangeCamera.h"
+#include "dynamic_view_planning_msgs/ChangeCamera.h"
 
 #include "dynamic_view_planning/view_space.hpp"
 
@@ -30,7 +30,7 @@ private:
 
     bool exportMap(ufomap_msgs::GetUfomap::Request &req, ufomap_msgs::GetUfomap::Response &res);
 
-	bool changeInput(dynamic_view_planning::ChangeCamera::Request &req, dynamic_view_planning::ChangeCamera::Response &res);
+	bool changeInput(dynamic_view_planning_msgs::ChangeCamera::Request &req, dynamic_view_planning_msgs::ChangeCamera::Response &res);
 
 private: 
 

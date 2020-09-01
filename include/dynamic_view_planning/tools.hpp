@@ -1,24 +1,20 @@
 #pragma once
 
 #include <Eigen/Geometry>
-#include "movements/geometry_pose.h"
 #include "ufomap/math/vector3.h"
-#include "ig_active_reconstruction/view.hpp"
 #include "geometry_msgs/TransformStamped.h"
 
 namespace tools
 {
-    ufomap_math::Vector3 poseToVector3(movements::Pose in_pose)
-    {   
-        float x = in_pose.position.x();
-        float y = in_pose.position.y();
-        float z = in_pose.position.z();
+    inline ufomap_math::Vector3 vector3FromTFmsg(geometry_msgs::TransformStamped tf)
+    {
+        ufomap_math::Vector3 out_vec(tf.transform.translation.x, 
+                                        tf.transform.translation.y,
+                                        tf.transform.translation.z);
 
-        ufomap_math::Vector3 out_vector3 = ufomap_math::Vector3(x,y,z);
-        return out_vector3;
+        return out_vec;
     }
-
-    std::string convertToString(geometry_msgs::TransformStamped tf_in, std::string camera_name)
+    inline std::string convertToString(geometry_msgs::TransformStamped tf_in, std::string camera_name)
     {
         std::string string_out;
 

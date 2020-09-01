@@ -1,5 +1,9 @@
 #include "dynamic_view_planning/view_planner.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
 
 
 namespace dynamic_view_planning
@@ -14,19 +18,24 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 	, max_range_(nh_priv.param("max_range", 2))
     , reconstructed_map_(nh_priv.param("resolution", 0.005), nh_priv.param("depth_levels", 8),
 				 !nh_priv.param("multithreaded", false))
+    , time_step_(nh_priv.param("time_step", 1))
 {
-
-    position_log_name_ = "home/rpl/results/data/" + experiment_name_ + "position_log.csv";
-    ig_log_name_ = "home/rpl/results/data/" + experiment_name_ + "ig_log.csv";
+    ROS_INFO("Initiating view planning session.");
+    //Generate filenames
+    position_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_position_log.csv";
+    ig_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_ig_log.csv";
 
     data_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + ".bag";
     reconstructed_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + "_" + ig_ + ".bag";
 
-    input_topic_ = "/camera_front/depth/color/points";
+    input_topic_ = "camera_front/depth/color/points";
+
+    //Initiate services
+    request_ig_ = nh_priv.serviceClient<dynamic_view_planning_msgs::RequestIG>("/request_ig");
 
     //View space
     std::string view_space_file = "/home/rpl/dvp_ws/src/dynamic_view_planning/config/" + experiment_name_ + ".txt";
-    ViewSpace view_space_(view_space_file);
+    view_space_ = ViewSpace(view_space_file);
 
     //Log files
     std::ofstream position_log_file_(position_log_name_.c_str());
@@ -36,23 +45,21 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     reconstructed_bag_.open(reconstructed_bag_name_, rosbag::bagmode::Write);
     data_bag_.open(data_bag_name_, rosbag::bagmode::Read);
 
-    start_time_ = data_bag_.get_start_time();
-    end_time_ = data_bag_.get_end_time();
-    request_ig_ = nh_priv.serviceClient<RequestIG>("request_ig");
-
     //Finding start and end time of data_bag:
     std::vector<std::string> topics;
     topics.push_back(std::string("camera_front/depth/color/points"));
     topics.push_back(std::string("camera_left/depth/color/points"));
     topics.push_back(std::string("camera_right/depth/color/points"));
 
-    rosbag::View time_view(data_bag_, rosbag::TopicQuery(topic));
+    rosbag::View time_view(data_bag_, rosbag::TopicQuery(topics));
 
     start_time_ = time_view.getBeginTime();
     end_time_ = time_view.getEndTime();
 
     current_time_ = start_time_;
 
+    ROS_INFO("Set-up done, moving to SM.");
+    state_ = "collect_data";
     // "State Machine"
     while (!(state_ == "shutdown"))
     {
@@ -68,6 +75,8 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     }
 
     // Shutting down.
+
+    ROS_INFO("Shutting down.");
     position_log_file_.close();
     ig_log_file_.close();
 
@@ -81,6 +90,7 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 
 void ViewPlanner::collectData()
 {
+    //ROS_INFO("Collecting data.");
     ros::Time start_time = current_time_;
     ros::Time end_time = start_time + time_step_;
 
@@ -92,8 +102,12 @@ void ViewPlanner::collectData()
     
     current_time_ = end_time;
 
+    ROS_INFO("Current time: %d", current_time_);
+
     std::vector<std::string> topic;
     topic.push_back(input_topic_);
+
+    //std::cout << "Input topic: " << input_topic_ << std::endl;
 
     rosbag::View data_collection_view(data_bag_, rosbag::TopicQuery(topic),
                                         start_time, end_time, true);
@@ -127,30 +141,45 @@ void ViewPlanner::collectData()
 
 void ViewPlanner::evaluateViews()
 {
+    //ROS_INFO("Evaluating views.");
     std::string best_view;
     double ig = 0;
-    for(std::vector<View>::iterator view = view_space_.view_space_.begin(); 
-            it != view_space_.view_space.end(); ++it)
+    for(std::vector<int>::size_type i = 0; 
+            i != view_space_.view_space_.size(); i++)
     {
-        RequestIG srv;
+        dynamic_view_planning_msgs::RequestIG srv;
+        ufomap_msgs::Ufomap req_msg; 
+        ufomap_msgs::mapToMsg(reconstructed_map_, req_msg);
+        srv.request.map = req_msg;
         srv.request.ig_id = ig_;
-        srv.request.position = view.getTransform();
+        srv.request.position = view_space_.view_space_[i].getTransform();
 
-        request_ig_.call(srv);
-
-        if (srv.response.ig > ig)
+        if (request_ig_.call(srv))
         {
-            best_view = view.view_id;
-            ig = srv.response.ig;
+            //std::cout << "ig " << srv.response.ig << std::endl;
+
+            if (srv.response.ig > ig)
+            {
+                best_view = view_space_.view_space_[i].view_id;
+                ig = srv.response.ig;
+            }
+
         }
+        else
+        {
+            std::cout << "Bad request";
+        }
+
         
     }
 
-    input_topic_ = "/" + best_view + "/depth/color/points";
-    ig_log_file_ << ig << std::endl;
-    position_log_file_ << best_view << std::endl;
+    //std::cout << "Chosen view: " << best_view << std::endl;
+
+    input_topic_ = best_view + "/depth/color/points";
+    ig_log_file_ << std::to_string(ig) << ",";
+    position_log_file_ << best_view << ",";
     
-    state_ = "collect_data"
+    state_ = "collect_data";
 
     
 }
