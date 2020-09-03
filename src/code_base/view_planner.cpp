@@ -5,7 +5,6 @@
 #include <string>
 #include <cstdlib>
 
-
 namespace dynamic_view_planning
 {
 ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
@@ -22,8 +21,8 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 {
     ROS_INFO("Initiating view planning session.");
     //Generate filenames
-    position_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_position_log.csv";
-    ig_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_ig_log.csv";
+    position_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_position_log.csv";
+    ig_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_ig_log.csv";
 
     data_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + ".bag";
     reconstructed_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + "_" + ig_ + ".bag";
@@ -37,13 +36,16 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     std::string view_space_file = "/home/rpl/dvp_ws/src/dynamic_view_planning/config/" + experiment_name_ + ".txt";
     view_space_ = ViewSpace(view_space_file);
 
-    //Log files
-    std::ofstream position_log_file_(position_log_name_.c_str());
-    std::ofstream ig_log_file_(ig_log_name_.c_str());
-
     //Bagfiles 
     reconstructed_bag_.open(reconstructed_bag_name_, rosbag::bagmode::Write);
     data_bag_.open(data_bag_name_, rosbag::bagmode::Read);
+
+    //"Clean" log files
+    std::ofstream position_log_file_(position_log_name_.c_str(), std::ofstream::out | std::ofstream::trunc);
+    std::ofstream ig_log_file_(ig_log_name_.c_str(), std::ofstream::out | std::ofstream::trunc);
+
+    position_log_file_ << "camera_front" << std::endl;
+    ig_log_file_ << "0,0,0" << std::endl;
 
     //Finding start and end time of data_bag:
     std::vector<std::string> topics;
@@ -55,6 +57,8 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 
     start_time_ = time_view.getBeginTime();
     end_time_ = time_view.getEndTime();
+
+    ROS_INFO("End time: %d", end_time_);
 
     current_time_ = start_time_;
 
@@ -75,7 +79,6 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     }
 
     // Shutting down.
-
     ROS_INFO("Shutting down.");
     position_log_file_.close();
     ig_log_file_.close();
@@ -84,9 +87,7 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     data_bag_.close();
 
     ROS_INFO("Reconstruction finished.");
-
 }
-
 
 void ViewPlanner::collectData()
 {
@@ -136,7 +137,6 @@ void ViewPlanner::collectData()
     }
 
     state_ = "evaluate_views";
-
 }
 
 void ViewPlanner::evaluateViews()
@@ -144,6 +144,10 @@ void ViewPlanner::evaluateViews()
     //ROS_INFO("Evaluating views.");
     std::string best_view;
     double ig = 0;
+
+    std::ofstream position_log_file_(position_log_name_.c_str(), std::ofstream::app);
+    std::ofstream ig_log_file_(ig_log_name_.c_str(), std::ofstream::app);
+
     for(std::vector<int>::size_type i = 0; 
             i != view_space_.view_space_.size(); i++)
     {
@@ -157,34 +161,30 @@ void ViewPlanner::evaluateViews()
         if (request_ig_.call(srv))
         {
             //std::cout << "ig " << srv.response.ig << std::endl;
-
+            if (i == 0)
+            {
+                ig_log_file_ << std::to_string(srv.response.ig);
+            }
+            else
+            {
+                ig_log_file_ << "," << std::to_string(srv.response.ig);
+            }
             if (srv.response.ig > ig)
             {
                 best_view = view_space_.view_space_[i].view_id;
                 ig = srv.response.ig;
             }
-
         }
         else
         {
             std::cout << "Bad request";
-        }
-
-        
+        }        
     }
 
-    //std::cout << "Chosen view: " << best_view << std::endl;
-
     input_topic_ = best_view + "/depth/color/points";
-    ig_log_file_ << std::to_string(ig) << ",";
-    position_log_file_ << best_view << ",";
+    ig_log_file_ << "\n";
+    position_log_file_ << best_view << "\n";
     
     state_ = "collect_data";
-
-    
 }
-
-
-
-
 }

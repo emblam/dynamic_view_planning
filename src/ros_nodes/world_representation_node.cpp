@@ -11,6 +11,8 @@ int main(int argc, char** argv)
 
     ROS_INFO("UFOMap world representation is ready.");
 
+    
+
     ros::spin();
     return 0;
 }

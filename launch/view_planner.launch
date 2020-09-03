@@ -4,7 +4,7 @@
 
         <!-- Obs! Must give file path, without .bag suffix -->
         <arg name="experiment_name"     default="fish_1"/>
-        <arg name="ig_formulation"      default="random"/>
+        <arg name="ig_formulation"      default="occlusion_aware"/>
         <arg name="time_step"           default="1"/>
 
     <!-- Map parameters -->
@@ -15,6 +15,8 @@
     <arg name="insert_depth"    default="3"/>
     <arg name="insert_n"        default="0"/>
     <arg name="max_range"       default="2"/>
+
+    <!--<node pkg="dynamic_view_planning" type="ig_server_node" name="ig_server_node" output="screen"/> -->
     
     <node pkg="dynamic_view_planning" type="view_planning_node" name="view_planning_node" output="screen">
         

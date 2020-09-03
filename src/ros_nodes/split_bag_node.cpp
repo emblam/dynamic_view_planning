@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     ufomap::Octree reconstructed_map = ufomap::Octree(resolution, depth_levels, multithreaded);
 
     std::string raw_data_bag_name = "/home/rpl/bagfiles/" + experiment_name + ".bag";
-    std::string rec_bag_name = "/home/rpl/bagfiles/" + experiment_name + "_left.bag";
+    std::string rec_bag_name = "/home/rpl/bagfiles/" + experiment_name + "_right.bag";
     std::string view_space_file = "/home/rpl/dvp_ws/src/dynamic_view_planning/config/" + experiment_name + ".txt";
 
     dynamic_view_planning::ViewSpace view_space(view_space_file);
@@ -53,9 +53,9 @@ int main(int argc, char** argv)
     rec_bag.open(rec_bag_name, rosbag::bagmode::Write);
 
     std::vector<std::string> topics;
-    topics.push_back(std::string("camera_left/depth/color/points"));
+    topics.push_back(std::string("camera_right/depth/color/points"));
 
-    ROS_INFO("Generating left map...");
+    ROS_INFO("Generating right map...");
 
     for(rosbag::MessageInstance const m: rosbag::View(raw_data_bag, rosbag::TopicQuery(topics)))
     {

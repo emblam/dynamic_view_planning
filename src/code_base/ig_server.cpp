@@ -100,10 +100,13 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
 
     double p;
 
+    //std::cout << "Called occlusion aware ig." << std::endl;
+
     for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
         it_end = map.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
+        //std::cout << "Voxel iteration." << std::endl; 
         std::vector<ufomap::Point3> ray;
         ufomap::Point3 end = it.getCenter();
 
@@ -111,8 +114,11 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
         
         voxel_visibility = 1;
 
-        for (auto point = ray.begin(); point != ray.end(); point++)
-        {   p = map.getNodeOccupancy(*point);
+        for (std::vector<int>::size_type i = 0; 
+                i != ray.size(); i++)
+        {   
+            std::cout << "Ray iteration." << std::endl;
+            p = map.getNodeOccupancy(ray[i]);
             voxel_visibility = voxel_visibility*(1-p);
         }
         p = map.getNodeOccupancy(end);
