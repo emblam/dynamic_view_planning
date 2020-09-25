@@ -68,6 +68,12 @@ public:
         return tf;
     }
 
+    bool operator==(const View& view) const
+    {
+        return x == view.x && y == view.y && z == view.z && 
+               qx == view.qx && qy == view.qy && qz == view.qz && qw == view.qw; 
+    }
+
 };
 
 class ViewSpace

@@ -12,22 +12,32 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     , nh_priv_(nh_priv)
     , experiment_name_(nh_priv.param("experiment_name", std::string("test")))
     , ig_(nh_priv.param("ig_formulation", std::string("random")))
-    , insert_depth_(nh_priv.param("insert_depth", 3))
+    , insert_depth_(nh_priv.param("insert_depth", 0))
 	, insert_n_(nh_priv.param("insert_n", 0))
 	, max_range_(nh_priv.param("max_range", 2))
     , reconstructed_map_(nh_priv.param("resolution", 0.005), nh_priv.param("depth_levels", 8),
 				 !nh_priv.param("multithreaded", false))
     , time_step_(nh_priv.param("time_step", 1))
+    , initial_view_(nh_priv.param("initial_view", std::string("camera_front")))
+    , force_movement_(nh_priv.param("force_movement", false))
 {
     ROS_INFO("Initiating view planning session.");
     //Generate filenames
-    position_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_position_log.csv";
-    ig_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_ig_log.csv";
-
     data_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + ".bag";
-    reconstructed_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + "_" + ig_ + ".bag";
 
-    input_topic_ = "camera_front/depth/color/points";
+    if (force_movement_)
+    {
+        position_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_FM" + "_position_log.csv";
+        ig_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_FM" + "_ig_log.csv";
+        reconstructed_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + "_" + ig_ + "_FM" +".bag";
+    }
+    else
+    {
+        position_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_position_log.csv";
+        ig_log_name_ = "/home/rpl/results/data/" + experiment_name_ + "_" + ig_ + "_ig_log.csv";
+        reconstructed_bag_name_ = "/home/rpl/bagfiles/" + experiment_name_ + "_" + ig_ + ".bag";
+    }
+    input_topic_ = initial_view_ + "/depth/color/points";
 
     //Initiate services
     request_ig_ = nh_priv.serviceClient<dynamic_view_planning_msgs::RequestIG>("/request_ig");
@@ -44,7 +54,7 @@ ViewPlanner::ViewPlanner(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     std::ofstream position_log_file_(position_log_name_.c_str(), std::ofstream::out | std::ofstream::trunc);
     std::ofstream ig_log_file_(ig_log_name_.c_str(), std::ofstream::out | std::ofstream::trunc);
 
-    position_log_file_ << "camera_front" << std::endl;
+    position_log_file_ << initial_view_ << std::endl;
     ig_log_file_ << "0,0,0" << std::endl;
 
     //Finding start and end time of data_bag:
@@ -119,6 +129,7 @@ void ViewPlanner::collectData()
 
 	    ufomap::PointCloud cloud;
         geometry_msgs::TransformStamped camera_position = view_space_.getViewTransform(in_msg->header.frame_id);
+        current_position_frame_ = in_msg->header.frame_id;
         ufomap_math::Pose6 transform = ufomap::toUfomap(camera_position.transform);
         ufomap::toUfomap(in_msg, cloud);
 
@@ -151,12 +162,34 @@ void ViewPlanner::evaluateViews()
     for(std::vector<int>::size_type i = 0; 
             i != view_space_.view_space_.size(); i++)
     {
+        geometry_msgs::TransformStamped current_position = view_space_.getViewTransform(current_position_frame_);
+
+        if (force_movement_)
+        {
+            View current_view = view_space_.getViewFromFrame(current_position_frame_);
+            
+            if (view_space_.view_space_[i]==current_view)
+            {
+                if (i == 0)
+                {
+                    ig_log_file_ << "0";
+                }
+                else
+                {
+                    ig_log_file_ << ",0";
+                }
+                continue;
+            }
+        }
+
         dynamic_view_planning_msgs::RequestIG srv;
         ufomap_msgs::Ufomap req_msg; 
         ufomap_msgs::mapToMsg(reconstructed_map_, req_msg);
+        
         srv.request.map = req_msg;
         srv.request.ig_id = ig_;
         srv.request.position = view_space_.view_space_[i].getTransform();
+        srv.request.current_position = current_position;
 
         if (request_ig_.call(srv))
         {

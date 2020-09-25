@@ -10,7 +10,7 @@
     <arg name="discrete_insertion" default="true" />
     <arg name="insert_depth" default="3"/>
     <arg name="insert_n" default="0"/>
-    <arg name="max_range" default="2"/>
+    <arg name="max_range" default="1.0"/>
 
 
     <node pkg="dynamic_view_planning" type="world_representation_node" name="world_representation_node" output="screen">

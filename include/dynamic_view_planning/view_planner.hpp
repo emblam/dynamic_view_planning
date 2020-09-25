@@ -37,6 +37,8 @@ private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_priv_;
 
+    std::string current_position_frame_;
+
     ros::ServiceClient request_ig_;
 
     std::string state_;
@@ -45,11 +47,13 @@ private:
     unsigned int insert_depth_;
 	unsigned int insert_n_;
     float max_range_;
+    bool force_movement_;
 
     std::string experiment_name_;
     std::string ig_;
     std::string data_bag_name_;
     std::string reconstructed_bag_name_;
+    std::string initial_view_;
 
     dynamic_view_planning::ViewSpace view_space_;
     ufomap::Octree reconstructed_map_;

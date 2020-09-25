@@ -10,6 +10,5 @@ int main(int argc, char**argv)
 
     dynamic_view_planning::ViewPlanner planner(nh,nh_priv);
 
-    ros::spin();
     return 0;
 }

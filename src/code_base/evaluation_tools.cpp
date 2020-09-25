@@ -20,7 +20,7 @@ EvaluationPortal::EvaluationPortal(ros::NodeHandle nh, ros::NodeHandle nh_priv)
     : nh_(nh)
     , nh_priv_(nh_priv)
     , experiment_name_(nh_priv.param("experiment_name", std::string("test")))
-    , insert_depth_(nh_priv.param("insert_depth", 3))
+    , insert_depth_(nh_priv.param("insert_depth", 0))
 	, insert_n_(nh_priv.param("insert_n", 0))
 	, max_range_(nh_priv.param("max_range", 2))
 {
@@ -33,6 +33,7 @@ EvaluationPortal::EvaluationPortal(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 
 bool EvaluationPortal::analyseFile(dynamic_view_planning_msgs::AnalyseFile::Request &req, dynamic_view_planning_msgs::AnalyseFile::Response &)
 {
+    ROS_INFO("File analysis called.");
     std::string input_file = "/home/rpl/bagfiles/" + req.input_file + ".bag";
     std::string output_file = "/home/rpl/results/" + req.output_file + ".csv"; 
 
@@ -104,6 +105,7 @@ bool EvaluationPortal::analyseFile(dynamic_view_planning_msgs::AnalyseFile::Requ
     recon_bag.close();
     ref_bag.close();
 
+    ROS_INFO("File analysis done.");
     return true;
 }
  
@@ -137,10 +139,10 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
         it != it_end && ros::ok(); ++it)
     {
         ++recon_occupied;
-        if (!(reference.isOccupied(it.getCenter())))
+/*         if (!(reference.isOccupied(it.getCenter())))
         {
             ++false_positives;
-        }
+        } */
     }
 
     for (auto it = reconstruction.begin_leafs_bounding(roi, true, true, true, false, 0), 
@@ -164,11 +166,11 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
     std::cout << "unknown: " << no_unknown << std::endl;
     std::cout << "voxels: " << no_voxels << std::endl; */
     
-    double true_positive_rate = true_positives/ref_occupied;
-    double false_positive_rate = false_positives/recon_occupied;
+    double recall = true_positives/ref_occupied;
+    double precision = true_positives/recon_occupied;
     double unknown_rate = no_unknown/no_voxels;
 
-    std::string result = std::to_string(true_positive_rate) + std::string(",") + std::to_string(false_positive_rate) + std::string(",") + std::to_string(unknown_rate) + std::string("\n");
+    std::string result = std::to_string(recall) + std::string(",") + std::to_string(precision) + std::string(",") + std::to_string(unknown_rate) + std::string("\n");
     
     return result;
 } 

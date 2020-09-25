@@ -13,6 +13,7 @@ IGCalculator::IGCalculator(ros::NodeHandle nh, ros::NodeHandle nh_priv)
 bool IGCalculator::computeIG(dynamic_view_planning_msgs::RequestIG::Request &req, dynamic_view_planning_msgs::RequestIG::Response &res)
 {
     ufomap_math::Vector3 origin = tools::vector3FromTFmsg(req.position);
+    ufomap_math::Vector3 current_pose = tools::vector3FromTFmsg(req.current_position);
 
     ufomap_math::Vector3 min_corner = Vector3(-0.05, 0.05, 0);
     ufomap_math::Vector3 max_corner = Vector3(0.45, 0.55, 0.5);
@@ -37,29 +38,24 @@ bool IGCalculator::computeIG(dynamic_view_planning_msgs::RequestIG::Request &req
         res.ig= IGCalculator::unknownIg(map, roi, origin);
         return true;
     }
-    else if(req.ig_id == "rear_voxels")
-    {
-        res.ig= IGCalculator::rearSideVoxelIg(map, roi, origin);
-        return true;
-    }
-    else if(req.ig_id == "rear_entropy")
-    {
-        res.ig= IGCalculator::rearSideEntropyIg(map, roi, origin);
-        return true;
-    }
-    else if(req.ig_id == "proximity_count")
-    {
-        res.ig= IGCalculator::proximityCountIg(map, roi, origin);
-        return true;
-    }
-    else if(req.ig_id == "area_factor")
-    {
-        res.ig= IGCalculator::areaFactorIg(map, roi, origin);
-        return true;
-    }
     else if(req.ig_id == "random")
     {
         res.ig= IGCalculator::randomIg();
+        return true;
+    }
+    else if(req.ig_id == "hidden_voxel")
+    {
+        res.ig=IGCalculator::hiddenVoxelIg(map, roi, origin, current_pose);
+        return true;
+    }
+    else if(req.ig_id == "hidden_entropy")
+    {
+        res.ig=IGCalculator::hiddenEntropyIg(map, roi, origin, current_pose);
+        return true;
+    }
+    else if(req.ig_id == "voxel_count")
+    {
+        res.ig=IGCalculator::voxelIg(map,roi,origin);
         return true;
     }
     else
@@ -71,27 +67,34 @@ bool IGCalculator::computeIG(dynamic_view_planning_msgs::RequestIG::Request &req
 
 }
 
-//TODO: Implement integrating method from STL Planning
 double IGCalculator::averageEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
-    float no_voxels;
-    float accumulated_entropy;
-    float temp_prob;
+    float no_voxels = 0;
+    float accumulated_entropy = 0;
+    float temp_prob = 0;
+
+    ufomap::Point3 end;
+    ufomap::Point3 direction;
 
     for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
             it_end = map.end_leafs<ufomap_geometry::AABB>(); 
             it != it_end && ros::ok(); ++it)
     { 
-        
-        temp_prob = it.getProbability();
-        ++no_voxels;
-        accumulated_entropy += -temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob);
-    }
+        end = it.getCenter();
+        direction = (end - origin).normalize();
 
+        if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
+        {
+            temp_prob = map.getNodeOccupancy(*it);
+            ++no_voxels;
+            accumulated_entropy += -temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob);    
+        }      
+    }
     return accumulated_entropy/no_voxels;
 
 }
 
+//TODO:: Numbers get so small that there is no differention
 double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
     double accumulated_gain;
@@ -100,13 +103,10 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
 
     double p;
 
-    //std::cout << "Called occlusion aware ig." << std::endl;
-
     for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
         it_end = map.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
-        //std::cout << "Voxel iteration." << std::endl; 
         std::vector<ufomap::Point3> ray;
         ufomap::Point3 end = it.getCenter();
 
@@ -114,14 +114,12 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
         
         voxel_visibility = 1;
 
-        for (std::vector<int>::size_type i = 0; 
-                i != ray.size(); i++)
+        for (auto point = ray.begin(); point != ray.end(); point++)
         {   
-            std::cout << "Ray iteration." << std::endl;
-            p = map.getNodeOccupancy(ray[i]);
+            p = map.probability(map.getNode(*point));
             voxel_visibility = voxel_visibility*(1-p);
         }
-        p = map.getNodeOccupancy(end);
+        p = map.probability(map.getNode(end));
         voxel_entropy = -p*log(p)-(1-p)*log(1-p);
         accumulated_gain += voxel_visibility*voxel_entropy;
     }
@@ -131,42 +129,128 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
 
 double IGCalculator::unknownIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
-    double out = 0;
+    double unknown_voxels = 0;
 
-    return out;
+    ufomap::Point3 end;
+    ufomap::Point3 direction;
+
+    for (auto it = map.begin_leafs_bounding(bb, false, false, true, false, 0), 
+        it_end = map.end_leafs<ufomap_geometry::AABB>(); 
+        it != it_end && ros::ok(); ++it)
+    {
+        end = it.getCenter();
+        direction = (end - origin).normalize();
+
+        if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
+        {
+            ++unknown_voxels;
+        }
+    }
+
+    return unknown_voxels;
 }
 
-double IGCalculator::rearSideVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
+double IGCalculator::voxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
-    double out = 0;
+    double voxel_count = 0;
 
-    return out;
-}
+    ufomap::Point3 end;
+    ufomap::Point3 direction;
 
-double IGCalculator::rearSideEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
-{
-    double out = 0;
+    for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
+        it_end = map.end_leafs<ufomap_geometry::AABB>(); 
+        it != it_end && ros::ok(); ++it)
+    {
+        end = it.getCenter();
+        direction = (end - origin).normalize();
 
-    return out;
-}
+        if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
+        {
+            ++voxel_count;
+        }
+    }
 
-double IGCalculator::proximityCountIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
-{
-    double out = 0;
-
-    return out;
-}
-
-double IGCalculator::areaFactorIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
-{
-    double out = 0;
-
-    return out;
+    return voxel_count;
 }
 
 double IGCalculator::randomIg()
 {
     return rand() % 100;
+}
+
+double IGCalculator::hiddenVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 new_view, ufomap::Point3 current_pose)
+{
+    double hidden_voxels = 0;
+
+    ufomap::Point3 end;
+    ufomap::Point3 direction;
+    ufomap::Point3 direction2;
+    
+    if (new_view==current_pose)
+    {
+        return 0;
+    }
+    else
+    {
+        for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
+            it_end = map.end_leafs<ufomap_geometry::AABB>(); 
+            it != it_end && ros::ok(); ++it)
+        {
+            end = it.getCenter();
+            direction = (end - new_view).normalize();
+            direction2 = (end - current_pose).normalize();
+        
+            if (!(map.castRay(new_view, direction, end, true, 1.0, 0)) && 
+                map.castRay(current_pose, direction2, end, true, 1.0, 0))
+            {
+                ++hidden_voxels;
+            }
+        }
+
+        return hidden_voxels;
+    }
+}
+
+double IGCalculator::hiddenEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 new_view, ufomap::Point3 current_pose)
+{
+    double hidden_entropy = 0;
+
+    float no_voxels = 0;
+    float accumulated_entropy = 0;
+    float temp_prob = 0;
+
+    ufomap::Point3 end;
+    ufomap::Point3 direction;
+    ufomap::Point3 direction2;
+
+    if (new_view==current_pose)
+    {
+        return 0;
+    }
+    else
+    {
+
+        for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
+            it_end = map.end_leafs<ufomap_geometry::AABB>(); 
+            it != it_end && ros::ok(); ++it)
+        {   
+            end = it.getCenter();
+            direction = (end - new_view).normalize();
+            direction2 = (end - current_pose).normalize();
+
+            if (!(map.castRay(new_view, direction, end, true, 1.0, 0)) && 
+                map.castRay(current_pose, direction2, end, true, 1.0, 0))
+            {
+                temp_prob = map.getNodeOccupancy(*it);
+                ++no_voxels;
+                accumulated_entropy += -temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob);    
+            }
+        }
+
+        hidden_entropy = accumulated_entropy/no_voxels;
+    
+        return hidden_entropy;
+    }
 }
 
 }

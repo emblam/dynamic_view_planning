@@ -8,11 +8,11 @@
     <!-- Map parameters -->
 
     <arg name="resolution"      default="0.005"/>
-	<arg name="depth_levels"    default="8"/>
+	<arg name="depth_levels"    default="16"/>
 	<arg name="multithreaded"   default="false"/>
-    <arg name="insert_depth"    default="3"/>
+    <arg name="insert_depth"    default="0"/>
     <arg name="insert_n"        default="0"/>
-    <arg name="max_range"       default="2"/>
+    <arg name="max_range"       default="1.0"/>
     
     <node pkg="dynamic_view_planning" type="evaluation_node" name="evaluation_node" output="screen">
         

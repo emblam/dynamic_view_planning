@@ -2,13 +2,15 @@
 
 
     <!-- EXPERIMENT NAME HERE -->
-    <param name="experiment_name" value="fish_1"/>
+    <param name="experiment_name" value="loop"/>
+
+    <!-- Map parameters -->
     <param name="resolution" value="0.005" />
     <param name="depth_levels" value="16" />
     <param name="multithreaded" value="false" />
-    <param name="max_range" value="1.0" />
-    <param name="insert_depth" value="3" />
+    <param name="insert_depth" value="0" /> 
     <param name="insert_n" value="0" />
+    <param name="max_range" value="1.0" />
 
     <node pkg="dynamic_view_planning" type="generate_reference_map_node" name="generate_reference_map_node" output="screen"/>
 

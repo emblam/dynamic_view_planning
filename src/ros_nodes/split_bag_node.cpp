@@ -27,21 +27,22 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
 
-    std::string experiment_name = "fish_1";
-
+    std::string experiment_name = "loop";
+    std::string camera_name = "front";
+ 
     ROS_INFO("Test node is ready");
 
     double resolution = 0.005;
     int depth_levels = 16;
     bool multithreaded = false;
     float max_range = 1.0;
-   	int insert_depth = 3;
+   	int insert_depth = 0;
 	int insert_n = 0;
 
     ufomap::Octree reconstructed_map = ufomap::Octree(resolution, depth_levels, multithreaded);
 
     std::string raw_data_bag_name = "/home/rpl/bagfiles/" + experiment_name + ".bag";
-    std::string rec_bag_name = "/home/rpl/bagfiles/" + experiment_name + "_right.bag";
+    std::string rec_bag_name = "/home/rpl/bagfiles/" + experiment_name + "_" + camera_name + ".bag";
     std::string view_space_file = "/home/rpl/dvp_ws/src/dynamic_view_planning/config/" + experiment_name + ".txt";
 
     dynamic_view_planning::ViewSpace view_space(view_space_file);
@@ -53,9 +54,9 @@ int main(int argc, char** argv)
     rec_bag.open(rec_bag_name, rosbag::bagmode::Write);
 
     std::vector<std::string> topics;
-    topics.push_back(std::string("camera_right/depth/color/points"));
+    topics.push_back(std::string("camera_" + camera_name + "/depth/color/points"));
 
-    ROS_INFO("Generating right map...");
+    ROS_INFO("Generating map...");
 
     for(rosbag::MessageInstance const m: rosbag::View(raw_data_bag, rosbag::TopicQuery(topics)))
     {
@@ -85,6 +86,6 @@ int main(int argc, char** argv)
 
     ROS_INFO("Reconstructed map generated.");
 
-    ros::spin();
     return 0;
+    
 }

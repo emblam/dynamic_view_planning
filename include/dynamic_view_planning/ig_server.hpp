@@ -25,12 +25,12 @@ private:
     double averageEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
     double occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);   
     double unknownIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
-    double rearSideVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
-    double rearSideEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
-    double proximityCountIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
-    double areaFactorIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
+    double voxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin);
+    
     double randomIg();
 
+    double hiddenVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 new_view, ufomap::Point3 current_pose);
+    double hiddenEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 new_view, ufomap::Point3 current_pose);
 private:
 
     ros::NodeHandle nh_;
