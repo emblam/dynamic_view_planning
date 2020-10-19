@@ -2,7 +2,7 @@
 
 
     <!-- EXPERIMENT NAME HERE -->
-    <param name="experiment_name" value="loop"/>
+    <param name="experiment_name" value="pi_long"/>
 
     <!-- Map parameters -->
     <param name="resolution" value="0.005" />

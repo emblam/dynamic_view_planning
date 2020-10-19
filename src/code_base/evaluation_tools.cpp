@@ -117,20 +117,26 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
     ufomap_geometry::AABB roi = ufomap_geometry::AABB(min_corner, max_corner);
 
     double true_positives = 0;
-    double false_positives = 0;
+    double true_positives_recon = 0;
     double ref_occupied = 0;
     double recon_occupied = 0;
     double no_voxels = 0;
     double no_unknown = 0;
 
+    double weight = 0;
+    unsigned int depth;
+
     for (auto it = reference.begin_leafs_bounding(roi, true, false, false, false, 0), 
         it_end = reference.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
-        ++ref_occupied;
+        depth = it.getDepth();
+        weight = std::pow(8,depth);
+        ref_occupied += weight;
+        
         if(reconstruction.isOccupied(it.getCenter()))
         {
-            ++true_positives;
+            true_positives += weight;
         }
     }
 
@@ -138,25 +144,33 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
         it_end = reconstruction.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
-        ++recon_occupied;
-/*         if (!(reference.isOccupied(it.getCenter())))
+        depth = it.getDepth();
+        weight = std::pow(8,depth);
+        recon_occupied += weight;
+
+        if(reference.isOccupied(it.getCenter()))
         {
-            ++false_positives;
-        } */
+            true_positives_recon += weight;
+        }
+
     }
 
     for (auto it = reconstruction.begin_leafs_bounding(roi, true, true, true, false, 0), 
         it_end = reconstruction.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
-    {
-        ++no_voxels;
+    {   
+        depth = it.getDepth();
+        weight = std::pow(8,depth);
+        no_voxels += weight;
     }
 
     for (auto it = reconstruction.begin_leafs_bounding(roi, false, false, true, false, 0), 
         it_end = reconstruction.end_leafs<ufomap_geometry::AABB>(); 
         it != it_end && ros::ok(); ++it)
     {
-        ++no_unknown;
+        depth = it.getDepth();
+        weight = std::pow(8,depth);
+        no_unknown += weight;
     }
 
     /* std::cout << "tp: " << true_positives << std::endl;
@@ -167,7 +181,7 @@ std::string EvaluationPortal::compareMaps(ufomap::Octree reconstruction, ufomap:
     std::cout << "voxels: " << no_voxels << std::endl; */
     
     double recall = true_positives/ref_occupied;
-    double precision = true_positives/recon_occupied;
+    double precision = true_positives_recon/recon_occupied;
     double unknown_rate = no_unknown/no_voxels;
 
     std::string result = std::to_string(recall) + std::string(",") + std::to_string(precision) + std::string(",") + std::to_string(unknown_rate) + std::string("\n");

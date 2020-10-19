@@ -69,9 +69,11 @@ bool IGCalculator::computeIG(dynamic_view_planning_msgs::RequestIG::Request &req
 
 double IGCalculator::averageEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
-    float no_voxels = 0;
-    float accumulated_entropy = 0;
-    float temp_prob = 0;
+    double no_voxels = 0;
+    double accumulated_entropy = 0;
+    double temp_prob = 0;
+    double weight = 0;
+    unsigned int depth = 0;
 
     ufomap::Point3 end;
     ufomap::Point3 direction;
@@ -86,20 +88,25 @@ double IGCalculator::averageEntropyIg(ufomap::Octree map, ufomap_geometry::AABB 
         if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
         {
             temp_prob = map.getNodeOccupancy(*it);
-            ++no_voxels;
-            accumulated_entropy += -temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob);    
+            depth = it.getDepth();
+            weight = std::pow(8,depth);
+            no_voxels += weight;
+            accumulated_entropy += weight*(-temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob));    
         }      
     }
     return accumulated_entropy/no_voxels;
 
 }
 
-//TODO:: Numbers get so small that there is no differention
+
 double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
-    double accumulated_gain;
-    double voxel_entropy;
-    double voxel_visibility;
+    double accumulated_gain = 0;
+    double voxel_entropy = 0;
+    double voxel_visibility = 0;
+    double no_voxels = 0;
+    double weight = 0;
+    unsigned int depth = 0;
 
     double p;
 
@@ -109,6 +116,10 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
     {
         std::vector<ufomap::Point3> ray;
         ufomap::Point3 end = it.getCenter();
+
+        depth = it.getDepth();
+        weight = std::pow(8,depth);
+        no_voxels += weight;
 
         map.computeRay(origin, end, ray);
         
@@ -121,15 +132,17 @@ double IGCalculator::occlusionAwareIg(ufomap::Octree map, ufomap_geometry::AABB 
         }
         p = map.probability(map.getNode(end));
         voxel_entropy = -p*log(p)-(1-p)*log(1-p);
-        accumulated_gain += voxel_visibility*voxel_entropy;
+        accumulated_gain += weight*voxel_visibility*voxel_entropy;
     }
 
-    return accumulated_gain;
+    return accumulated_gain/no_voxels;
 }
 
 double IGCalculator::unknownIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
     double unknown_voxels = 0;
+    double weight = 0;
+    unsigned int depth = 0;;
 
     ufomap::Point3 end;
     ufomap::Point3 direction;
@@ -143,7 +156,9 @@ double IGCalculator::unknownIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufo
 
         if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
         {
-            ++unknown_voxels;
+            depth = it.getDepth();
+            weight = std::pow(8,depth);
+            unknown_voxels += weight;
         }
     }
 
@@ -153,6 +168,8 @@ double IGCalculator::unknownIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufo
 double IGCalculator::voxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 origin)
 {
     double voxel_count = 0;
+    double weight = 0;
+    unsigned int depth = 0;
 
     ufomap::Point3 end;
     ufomap::Point3 direction;
@@ -166,7 +183,9 @@ double IGCalculator::voxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufoma
 
         if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
         {
-            ++voxel_count;
+            depth = it.getDepth();
+            weight = std::pow(8,depth);
+            voxel_count += weight;
         }
     }
 
@@ -181,6 +200,8 @@ double IGCalculator::randomIg()
 double IGCalculator::hiddenVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 new_view, ufomap::Point3 current_pose)
 {
     double hidden_voxels = 0;
+    double weight = 0;
+    unsigned int depth = 0;
 
     ufomap::Point3 end;
     ufomap::Point3 direction;
@@ -203,7 +224,9 @@ double IGCalculator::hiddenVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb,
             if (!(map.castRay(new_view, direction, end, true, 1.0, 0)) && 
                 map.castRay(current_pose, direction2, end, true, 1.0, 0))
             {
-                ++hidden_voxels;
+                depth = it.getDepth();
+                weight = std::pow(8,depth);
+                hidden_voxels += weight;
             }
         }
 
@@ -214,10 +237,11 @@ double IGCalculator::hiddenVoxelIg(ufomap::Octree map, ufomap_geometry::AABB bb,
 double IGCalculator::hiddenEntropyIg(ufomap::Octree map, ufomap_geometry::AABB bb, ufomap::Point3 new_view, ufomap::Point3 current_pose)
 {
     double hidden_entropy = 0;
-
-    float no_voxels = 0;
-    float accumulated_entropy = 0;
-    float temp_prob = 0;
+    double no_voxels = 0;
+    double accumulated_entropy = 0;
+    double temp_prob = 0;
+    double weight = 0;
+    unsigned int depth = 0;
 
     ufomap::Point3 end;
     ufomap::Point3 direction;
@@ -229,7 +253,6 @@ double IGCalculator::hiddenEntropyIg(ufomap::Octree map, ufomap_geometry::AABB b
     }
     else
     {
-
         for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
             it_end = map.end_leafs<ufomap_geometry::AABB>(); 
             it != it_end && ros::ok(); ++it)
@@ -242,8 +265,10 @@ double IGCalculator::hiddenEntropyIg(ufomap::Octree map, ufomap_geometry::AABB b
                 map.castRay(current_pose, direction2, end, true, 1.0, 0))
             {
                 temp_prob = map.getNodeOccupancy(*it);
-                ++no_voxels;
-                accumulated_entropy += -temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob);    
+                depth = it.getDepth();
+                weight = std::pow(8,depth);
+                no_voxels += weight;
+                accumulated_entropy += weight*(-temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob));    
             }
         }
 

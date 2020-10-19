@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <cstdlib>
+#include <cmath>
 
 #include "dynamic_view_planning/view_space.hpp"
 #include <tf2_ros/static_transform_broadcaster.h>
@@ -58,34 +59,33 @@ int main(int argc, char** argv)
         ufomap_msgs::msgToMap(*map_msg,map);
 
         //START OF TEST-SCRIPT:
-        double accumulated_gain;
-        double voxel_entropy;
-        double voxel_visibility;
+        double no_voxels = 0;
+        double accumulated_entropy = 0;
+        double temp_prob = 0;
+        double weight = 0;
+        unsigned int depth;
 
-        double p;
+        ufomap::Point3 end;
+        ufomap::Point3 direction;        
 
         for (auto it = map.begin_leafs_bounding(bb, true, true, true, false, 0), 
-            it_end = map.end_leafs<ufomap_geometry::AABB>(); 
-            it != it_end && ros::ok(); ++it)
-        {
-            std::vector<ufomap::Point3> ray;
-            ufomap::Point3 end = it.getCenter();
+                it_end = map.end_leafs<ufomap_geometry::AABB>(); 
+                it != it_end && ros::ok(); ++it)
+        { 
+            end = it.getCenter();
+            direction = (end - origin).normalize();
 
-            map.computeRay(origin, end, ray);
-        
-            voxel_visibility = 1;
+            if (!(map.castRay(origin, direction, end, true, 1.0, 0)))
+            {
+                temp_prob = map.getNodeOccupancy(*it);
+                depth = it.getDepth();
+                weight = std::pow(8,depth);
 
-            for (auto point = ray.begin(); point != ray.end(); point++)
-            {   
-                p = map.probability(map.getNode(*point));
-                voxel_visibility = voxel_visibility*(1-p);
-            }
-            p = map.probability(map.getNode(end));
-            voxel_entropy = -p*log(p)-(1-p)*log(1-p);
-            accumulated_gain += voxel_visibility*voxel_entropy;
+                no_voxels += weight;
+                accumulated_entropy += weight*(-temp_prob*log(temp_prob)-(1-temp_prob)*log(1-temp_prob));    
+            }      
         }
-
-        std::cout << accumulated_gain << std::endl;
+        std::cout << accumulated_entropy/no_voxels;
         //END OF TEST-SCRIPT
         break;
 
@@ -93,9 +93,4 @@ int main(int argc, char** argv)
 
     
 }
-
-/* 
-double p_node = map.getNodeOccupancy(*it);
-            double test_p = map.probability(map.getNode(coordinates));
- */
 

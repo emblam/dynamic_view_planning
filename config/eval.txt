@@ -1,0 +1,21 @@
+rosservice call /analyse_file loop_average_entropy loop_left_average_entropy
+
+rosservice call /analyse_file loop_average_entropy_FM loop_left_average_entropy_FM
+
+rosservice call /analyse_file loop_hidden_entropy loop_left_hidden_entropy
+
+rosservice call /analyse_file loop_hidden_voxel loop_left_hidden_voxel
+
+rosservice call /analyse_file loop_occlusion_aware loop_left_occlusion_aware
+
+rosservice call /analyse_file loop_occlusion_aware_FM loop_left_occlusion_aware_FM
+
+rosservice call /analyse_file loop_random loop_left_random
+
+rosservice call /analyse_file loop_unknown_voxels loop_left_unknown_voxels
+
+rosservice call /analyse_file loop_unknown_voxels_FM loop_left_unknown_voxels_FM
+
+rosservice call /analyse_file loop_voxel_count loop_left_voxel_count
+
+rosservice call /analyse_file loop_voxel_count_FM loop_left_voxel_count_FM

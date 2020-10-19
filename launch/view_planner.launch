@@ -2,10 +2,9 @@
 
     <!-- Experiment parameters -->
 
-        <!-- average_entropy, occlusion_aware, unknown_voxels, random, hidden_voxel, hidden_entropy, voxel_count-->
         <arg name="experiment_name"     default="loop"/> 
         <arg name="time_step"           default="5"/>
-        <arg name="initial_view"        default="camera_front"/>
+        <arg name="initial_view"        default="camera_right"/>
 
     <!-- Map parameters -->
 

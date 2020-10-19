@@ -3,7 +3,7 @@
     <!-- Experiment parameters -->
 
         <!-- Obs! Must give file path, without .bag suffix -->
-        <arg name="experiment_name"     default="fish_1"/>
+        <arg name="experiment_name"     default="loop"/>
 
     <!-- Map parameters -->
 
