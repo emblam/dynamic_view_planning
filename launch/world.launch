@@ -1,14 +1,14 @@
 <launch>
 
     <arg name="resolution" default="0.005" />
-	<arg name="depth_levels" default="8" />
+	<arg name="depth_levels" default="16" />
 	<arg name="multithreaded" default="false" />
     <arg name="map_queue_size" default="10" />
     <arg name="map_latch" default="false" />
     <arg name="cloud_in_queue_size" default="10" />
     <arg name="frame_id" default="map" />
     <arg name="discrete_insertion" default="true" />
-    <arg name="insert_depth" default="3"/>
+    <arg name="insert_depth" default="0"/>
     <arg name="insert_n" default="0"/>
     <arg name="max_range" default="1.0"/>
 
